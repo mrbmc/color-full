@@ -27,10 +27,15 @@ A palette row holds up to 8 saved colors. Click a swatch to load it. Right-click
 
 Served as a plain HTML file — no build step, no dependencies, no framework. Open it in Chrome and install it as a PWA:
 
+1. Visit https://mrbmc.github.io/color-full/
+2. Click the **Install** button in the address bar
+3. It appears in your dock / app launcher like any other app
+
+Or
 1. Serve locally (e.g. via Apache, `npx serve`, or any static server)
-2. Open in Chrome
-3. Click the **Install** button in the address bar
-4. It appears in your dock / app launcher like any other app
+5. Open in Chrome
+6. Click the **Install** button in the address bar
+7. It appears in your dock / app launcher like any other app
 
 Once installed it opens in its own window, with no browser chrome, at a fixed size — exactly like a native utility app.
 
