@@ -15,8 +15,8 @@
     --surface2: #232328;
     --border: #2e2e35;
     --text: #e4e4e7;
-    --text-dim: #71717a;
-    --text-dimmer: #3f3f46;
+    --text-dim: #a1a1aa;
+    --text-dimmer: #858590;
     --accent: #a78bfa;
     --accent-dim: rgba(167, 139, 250, 0.12);
     --chip-size: 160px;
@@ -60,7 +60,7 @@
   header h1 {
     font-family: var(--font-mono);
     font-weight: 300;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-dim);
@@ -74,6 +74,10 @@
     margin-left: auto;
     box-shadow: 0 0 8px var(--accent);
     animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  a {
+    color: var(--text-dim);
   }
 
   @keyframes pulse {
@@ -152,7 +156,7 @@
 
   .chip-label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--text-dimmer);
@@ -169,7 +173,7 @@
 
   .chip-meta {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-dim);
     font-weight: 300;
     line-height: 1.6;
@@ -203,7 +207,7 @@
 
   .format-toggle {
     color: var(--text-dimmer);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1;
     transition: transform 0.2s ease;
     flex-shrink: 0;
@@ -220,7 +224,7 @@
 
   .format-label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-dim);
@@ -229,7 +233,7 @@
 
   .copy-btn {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-dimmer);
@@ -261,7 +265,7 @@
 
   .field label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.1em;
     color: var(--text-dimmer);
     text-transform: uppercase;
@@ -311,7 +315,7 @@
 
   .slider-track label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.1em;
     color: var(--text-dimmer);
     text-transform: uppercase;
@@ -364,7 +368,7 @@
 
   footer {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.12em;
     color: var(--text-dimmer);
     text-align: center;
@@ -466,6 +470,10 @@
   .ctx-item.danger:hover { background: rgba(248,113,113,0.1); color: #f87171; }
 
   .ctx-item.disabled { opacity: 0.3; pointer-events: none; }
+
+  @media (display-mode: standalone) {
+    header { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -575,7 +583,7 @@
     <div class="palette-swatches" id="paletteSwatches"></div>
   </div>
 
-  <footer>©kageki, inc.</footer>
+  <footer>© <a href="https://www.odysan.com">odysan</a></footer>
 </div>
 
 <!-- Context menu -->
