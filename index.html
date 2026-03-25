@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Full</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e0e10">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181b;
+    --surface2: #232328;
+    --border: #2e2e35;
+    --text: #e4e4e7;
+    --text-dim: #71717a;
+    --text-dimmer: #3f3f46;
+    --accent: #a78bfa;
+    --accent-dim: rgba(167, 139, 250, 0.12);
+    --chip-size: 160px;
+    --radius: 10px;
+    --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  header h1 {
+    font-family: var(--font-mono);
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  header .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-left: auto;
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* Color chip */
+  .chip-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .chip {
+    width: var(--chip-size);
+    height: var(--chip-size);
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: background-color 0.08s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  /* Checkerboard behind chip for alpha visibility */
+  .chip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #444 25%, transparent 25%),
+      linear-gradient(-45deg, #444 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #444 75%),
+      linear-gradient(-45deg, transparent 75%, #444 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+    background-color: #222;
+    z-index: 0;
+    border-radius: calc(var(--radius) - 1px);
+  }
+
+  .chip-color {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    transition: background-color 0.08s ease;
+    border-radius: calc(var(--radius) - 1px);
+  }
+
+  /* Native color picker on chip */
+  .chip input[type="color"] {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0;
+    cursor: crosshair;
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+  }
+
+  .chip-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .chip-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    font-weight: 400;
+  }
+
+  .chip-hex-display {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.03em;
+  }
+
+  .chip-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 300;
+    line-height: 1.6;
+    white-space: pre;
+  }
+
+  /* Sections */
+  .format-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s;
+  }
+
+  .format-section:focus-within {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  .format-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .format-toggle {
+    color: var(--text-dimmer);
+    font-size: 10px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .format-section.collapsed .format-toggle {
+    transform: rotate(-90deg);
+  }
+
+  .format-section.collapsed .fields,
+  .format-section.collapsed .slider-row {
+    display: none;
+  }
+
+  .format-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .copy-btn {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--accent); background: var(--accent-dim); }
+  .copy-btn.copied { color: #4ade80; }
+
+  .fields {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field.wide { flex: 2; }
+
+  .field label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .field input[type="number"]::-webkit-inner-spin-button,
+  .field input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .field input:focus {
+    border-color: var(--accent);
+    background: #1e1e26;
+  }
+
+  .field input.error {
+    border-color: #f87171;
+    color: #f87171;
+  }
+
+  /* Sliders */
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slider-track {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .slider-track label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    width: 10px;
+    flex-shrink: 0;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  footer {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--text-dimmer);
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  /* Palette */
+  .palette {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .palette-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .palette-swatches {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+  }
+
+  .swatch {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+    cursor: context-menu;
+    overflow: hidden;
+  }
+
+  .swatch::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #444 25%, transparent 25%),
+      linear-gradient(-45deg, #444 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #444 75%),
+      linear-gradient(-45deg, transparent 75%, #444 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+    background-color: #222;
+  }
+
+  .swatch-color {
+    position: absolute;
+    inset: 0;
+  }
+
+  .swatch.empty .swatch-color {
+    background: transparent;
+  }
+
+  .swatch.empty {
+    border-style: dashed;
+    border-color: var(--text-dimmer);
+    opacity: 0.4;
+  }
+
+  /* Context menu */
+  .ctx-menu {
+    position: fixed;
+    z-index: 1000;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 110px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: none;
+  }
+
+  .ctx-menu.visible { display: block; }
+
+  .ctx-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+
+  .ctx-item:hover { background: var(--accent-dim); color: var(--accent); }
+
+  .ctx-item.danger:hover { background: rgba(248,113,113,0.1); color: #f87171; }
+
+  .ctx-item.disabled { opacity: 0.3; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Color Full</h1>
+    <div class="dot"></div>
+  </header>
+
+  <!-- Chip + summary -->
+  <div class="chip-row">
+    <div class="chip" title="Click to open color picker">
+      <div class="chip-color" id="chipColor"></div>
+      <input type="color" id="nativePicker" title="Pick a color">
+    </div>
+    <div class="chip-info">
+      <span class="chip-label">Active color</span>
+      <span class="chip-hex-display" id="chipHexDisplay">#6366f1</span>
+      <span class="chip-meta" id="chipMeta"></span>
+    </div>
+  </div>
+
+  <!-- HEX -->
+  <div class="format-section" id="sec-hex">
+    <div class="format-header" onclick="toggleSection('sec-hex')">
+      <span class="format-label">HEX</span>
+      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hex')">Copy</button>
+      <span class="format-toggle">&#9660;</span>
+    </div>
+    <div class="fields">
+      <div class="field wide">
+        <label>Hex</label>
+        <input type="text" id="hexInput" maxlength="9" spellcheck="false" placeholder="#rrggbb">
+      </div>
+    </div>
+  </div>
+
+  <!-- HSLA -->
+  <div class="format-section" id="sec-hsla">
+    <div class="format-header" onclick="toggleSection('sec-hsla')">
+      <span class="format-label">HSLA</span>
+      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsla')">Copy</button>
+      <span class="format-toggle">&#9660;</span>
+    </div>
+    <div class="fields">
+      <div class="field"><label>H°</label><input type="number" id="hslaH" min="0" max="360"></div>
+      <div class="field"><label>S%</label><input type="number" id="hslaS" min="0" max="100"></div>
+      <div class="field"><label>L%</label><input type="number" id="hslaL" min="0" max="100"></div>
+      <div class="field"><label>A</label><input type="number" id="hslaA" min="0" max="1" step="0.01"></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-track"><label>H</label><input type="range" id="slHslaH" min="0" max="360"><span class="slider-val" id="slHslaHVal">239</span></div>
+      <div class="slider-track"><label>S</label><input type="range" id="slHslaS" min="0" max="100"><span class="slider-val" id="slHslaSVal">84</span></div>
+      <div class="slider-track"><label>L</label><input type="range" id="slHslaL" min="0" max="100"><span class="slider-val" id="slHslaLVal">67</span></div>
+      <div class="slider-track"><label>A</label><input type="range" id="slHslaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHslaAVal">1</span></div>
+    </div>
+  </div>
+
+  <!-- HSBA -->
+  <div class="format-section" id="sec-hsba">
+    <div class="format-header" onclick="toggleSection('sec-hsba')">
+      <span class="format-label">HSBA / HSV</span>
+      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsba')">Copy</button>
+      <span class="format-toggle">&#9660;</span>
+    </div>
+    <div class="fields">
+      <div class="field"><label>H°</label><input type="number" id="hsbaH" min="0" max="360"></div>
+      <div class="field"><label>S%</label><input type="number" id="hsbaS" min="0" max="100"></div>
+      <div class="field"><label>B%</label><input type="number" id="hsbaB" min="0" max="100"></div>
+      <div class="field"><label>A</label><input type="number" id="hsbaA" min="0" max="1" step="0.01"></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-track"><label>H</label><input type="range" id="slHsbaH" min="0" max="360"><span class="slider-val" id="slHsbaHVal">239</span></div>
+      <div class="slider-track"><label>S</label><input type="range" id="slHsbaS" min="0" max="100"><span class="slider-val" id="slHsbaSVal">59</span></div>
+      <div class="slider-track"><label>B</label><input type="range" id="slHsbaB" min="0" max="100"><span class="slider-val" id="slHsbaBVal">95</span></div>
+      <div class="slider-track"><label>A</label><input type="range" id="slHsbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHsbaAVal">1</span></div>
+    </div>
+  </div>
+
+  <!-- RGBA -->
+  <div class="format-section" id="sec-rgba">
+    <div class="format-header" onclick="toggleSection('sec-rgba')">
+      <span class="format-label">RGBA</span>
+      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('rgba')">Copy</button>
+      <span class="format-toggle">&#9660;</span>
+    </div>
+    <div class="fields">
+      <div class="field"><label>R</label><input type="number" id="rgbaR" min="0" max="255"></div>
+      <div class="field"><label>G</label><input type="number" id="rgbaG" min="0" max="255"></div>
+      <div class="field"><label>B</label><input type="number" id="rgbaB" min="0" max="255"></div>
+      <div class="field"><label>A</label><input type="number" id="rgbaA" min="0" max="1" step="0.01"></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-track"><label>R</label><input type="range" id="slRgbaR" min="0" max="255"><span class="slider-val" id="slRgbaRVal">99</span></div>
+      <div class="slider-track"><label>G</label><input type="range" id="slRgbaG" min="0" max="255"><span class="slider-val" id="slRgbaGVal">102</span></div>
+      <div class="slider-track"><label>B</label><input type="range" id="slRgbaB" min="0" max="255"><span class="slider-val" id="slRgbaBVal">241</span></div>
+      <div class="slider-track"><label>A</label><input type="range" id="slRgbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slRgbaAVal">1</span></div>
+    </div>
+  </div>
+
+  <!-- Palette -->
+  <div class="palette">
+    <div class="palette-header">
+      <span class="format-label">Palette</span>
+    </div>
+    <div class="palette-swatches" id="paletteSwatches"></div>
+  </div>
+
+  <footer>©kageki, inc.</footer>
+</div>
+
+<!-- Context menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" id="ctxLoad">Load</div>
+  <div class="ctx-item" id="ctxSave">Save</div>
+  <div class="ctx-item danger" id="ctxDelete">Delete</div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let state = { r: 99, g: 102, b: 241, a: 1 };  // rgba as source of truth
+let updating = false;
+
+// ─── Color math ───────────────────────────────────────────────────────────────
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return { r: Math.round(f(0) * 255), g: Math.round(f(8) * 255), b: Math.round(f(4) * 255) };
+}
+
+function rgbToHsb(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h;
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+  if (d === 0) { h = 0; }
+  else {
+    switch (max) {
+      case r: h = ((g - b) / d % 6); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  return { h, s: Math.round(s * 100), b: Math.round(v * 100) };
+}
+
+function hsbToRgb(h, s, b) {
+  s /= 100; b /= 100;
+  const k = n => (n + h / 60) % 6;
+  const f = n => b * (1 - s * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+  return { r: Math.round(f(5) * 255), g: Math.round(f(3) * 255), b: Math.round(f(1) * 255) };
+}
+
+function toHex(v) { return v.toString(16).padStart(2, '0'); }
+
+function rgbaToHex(r, g, b, a) {
+  const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  return a < 1 ? hex + toHex(Math.round(a * 255)) : hex;
+}
+
+function hexToRgba(hex) {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  if (hex.length === 6) {
+    return { r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16), a: 1 };
+  }
+  if (hex.length === 8) {
+    return { r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16), a: parseFloat((parseInt(hex.slice(6,8),16)/255).toFixed(2)) };
+  }
+  return null;
+}
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const els = {
+  hex: $('hexInput'),
+  rR: $('rgbaR'), rG: $('rgbaG'), rB: $('rgbaB'), rA: $('rgbaA'),
+  hslH: $('hslaH'), hslS: $('hslaS'), hslL: $('hslaL'), hslA: $('hslaA'),
+  hsbH: $('hsbaH'), hsbS: $('hsbaS'), hsbB: $('hsbaB'), hsbA: $('hsbaA'),
+  slRR: $('slRgbaR'), slRG: $('slRgbaG'), slRB: $('slRgbaB'), slRA: $('slRgbaA'),
+  slHslH: $('slHslaH'), slHslS: $('slHslaS'), slHslL: $('slHslaL'), slHslA: $('slHslaA'),
+  slHsbH: $('slHsbaH'), slHsbS: $('slHsbaS'), slHsbB: $('slHsbaB'), slHsbA: $('slHsbaA'),
+};
+
+// Slider gradient backgrounds
+function updateSliderBgs() {
+  const { r, g, b, a } = state;
+  const hsl = rgbToHsl(r, g, b);
+  const hsb = rgbToHsb(r, g, b);
+
+  // RGBA sliders
+  els.slRR.style.background = `linear-gradient(to right, rgb(0,${g},${b}), rgb(255,${g},${b}))`;
+  els.slRG.style.background = `linear-gradient(to right, rgb(${r},0,${b}), rgb(${r},255,${b}))`;
+  els.slRB.style.background = `linear-gradient(to right, rgb(${r},${g},0), rgb(${r},${g},255))`;
+  els.slRA.style.background = `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`;
+
+  // HSLA sliders
+  const hueGrad = Array.from({length:7}, (_,i) => `hsl(${i*60},100%,50%)`).join(',');
+  els.slHslH.style.background = `linear-gradient(to right, ${hueGrad})`;
+  els.slHslS.style.background = `linear-gradient(to right, hsl(${hsl.h},0%,${hsl.l}%), hsl(${hsl.h},100%,${hsl.l}%))`;
+  els.slHslL.style.background = `linear-gradient(to right, hsl(${hsl.h},${hsl.s}%,0%), hsl(${hsl.h},${hsl.s}%,50%), hsl(${hsl.h},${hsl.s}%,100%))`;
+  els.slHslA.style.background = `linear-gradient(to right, hsla(${hsl.h},${hsl.s}%,${hsl.l}%,0), hsl(${hsl.h},${hsl.s}%,${hsl.l}%))`;
+
+  // HSBA sliders
+  els.slHsbH.style.background = `linear-gradient(to right, ${hueGrad})`;
+  els.slHsbS.style.background = `linear-gradient(to right, hsl(${hsb.h},0%,${hsb.b/2}%), hsl(${hsb.h},100%,${hsb.b/2}%))`;
+  els.slHsbB.style.background = `linear-gradient(to right, #000, hsl(${hsb.h},100%,50%))`;
+  els.slHsbA.style.background = `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`;
+}
+
+// ─── Render all fields from state ─────────────────────────────────────────────
+function render(source) {
+  if (updating) return;
+  updating = true;
+
+  const { r, g, b, a } = state;
+  const hsl = rgbToHsl(r, g, b);
+  const hsb = rgbToHsb(r, g, b);
+  const hex = rgbaToHex(r, g, b, a);
+
+  // Chip
+  $('chipColor').style.backgroundColor = `rgba(${r},${g},${b},${a})`;
+  $('chipHexDisplay').textContent = hex;
+  $('chipMeta').textContent = `rgba(${r}, ${g}, ${b}, ${a})\nhsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+  $('nativePicker').value = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+
+  if (source !== 'hex')   els.hex.value = hex;
+  if (source !== 'rgba') { els.rR.value = r; els.rG.value = g; els.rB.value = b; els.rA.value = a; }
+  if (source !== 'hsla') { els.hslH.value = hsl.h; els.hslS.value = hsl.s; els.hslL.value = hsl.l; els.hslA.value = a; }
+  if (source !== 'hsba') { els.hsbH.value = hsb.h; els.hsbS.value = hsb.s; els.hsbB.value = hsb.b; els.hsbA.value = a; }
+
+  // Sliders
+  if (source !== 'slrgba') { els.slRR.value = r; els.slRG.value = g; els.slRB.value = b; els.slRA.value = a; }
+  if (source !== 'slhsla') { els.slHslH.value = hsl.h; els.slHslS.value = hsl.s; els.slHslL.value = hsl.l; els.slHslA.value = a; }
+  if (source !== 'slhsba') { els.slHsbH.value = hsb.h; els.slHsbS.value = hsb.s; els.slHsbB.value = hsb.b; els.slHsbA.value = a; }
+
+  // Slider labels
+  $('slRgbaRVal').textContent = r;
+  $('slRgbaGVal').textContent = g;
+  $('slRgbaBVal').textContent = b;
+  $('slRgbaAVal').textContent = a;
+  $('slHslaHVal').textContent = hsl.h;
+  $('slHslaSVal').textContent = hsl.s;
+  $('slHslaLVal').textContent = hsl.l;
+  $('slHslaAVal').textContent = a;
+  $('slHsbaHVal').textContent = hsb.h;
+  $('slHsbaSVal').textContent = hsb.s;
+  $('slHsbaBVal').textContent = hsb.b;
+  $('slHsbaAVal').textContent = a;
+
+  updateSliderBgs();
+  updating = false;
+}
+
+// ─── Input handlers ───────────────────────────────────────────────────────────
+function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+// HEX
+els.hex.addEventListener('input', () => {
+  const v = hexToRgba(els.hex.value.trim());
+  if (v) { state = v; els.hex.classList.remove('error'); render('hex'); }
+  else els.hex.classList.add('error');
+});
+els.hex.addEventListener('blur', () => els.hex.classList.remove('error'));
+
+// RGBA text inputs
+['rR','rG','rB'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    state.r = clamp(parseInt(els.rR.value)||0,0,255);
+    state.g = clamp(parseInt(els.rG.value)||0,0,255);
+    state.b = clamp(parseInt(els.rB.value)||0,0,255);
+    render('rgba');
+  });
+});
+els.rA.addEventListener('input', () => { state.a = clamp(parseFloat(els.rA.value)||0,0,1); render('rgba'); });
+
+// HSLA text inputs
+['hslH','hslS','hslL'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    const h = clamp(parseInt(els.hslH.value)||0,0,360);
+    const s = clamp(parseInt(els.hslS.value)||0,0,100);
+    const l = clamp(parseInt(els.hslL.value)||0,0,100);
+    const rgb = hslToRgb(h, s, l);
+    state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+    render('hsla');
+  });
+});
+els.hslA.addEventListener('input', () => { state.a = clamp(parseFloat(els.hslA.value)||0,0,1); render('hsla'); });
+
+// HSBA text inputs
+['hsbH','hsbS','hsbB'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    const h = clamp(parseInt(els.hsbH.value)||0,0,360);
+    const s = clamp(parseInt(els.hsbS.value)||0,0,100);
+    const b = clamp(parseInt(els.hsbB.value)||0,0,100);
+    const rgb = hsbToRgb(h, s, b);
+    state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+    render('hsba');
+  });
+});
+els.hsbA.addEventListener('input', () => { state.a = clamp(parseFloat(els.hsbA.value)||0,0,1); render('hsba'); });
+
+// RGBA sliders
+els.slRR.addEventListener('input', () => { state.r = parseInt(els.slRR.value); render('slrgba'); });
+els.slRG.addEventListener('input', () => { state.g = parseInt(els.slRG.value); render('slrgba'); });
+els.slRB.addEventListener('input', () => { state.b = parseInt(els.slRB.value); render('slrgba'); });
+els.slRA.addEventListener('input', () => { state.a = parseFloat(els.slRA.value); render('slrgba'); });
+
+// HSLA sliders
+['slHslH','slHslS','slHslL','slHslA'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    const h = parseInt(els.slHslH.value);
+    const s = parseInt(els.slHslS.value);
+    const l = parseInt(els.slHslL.value);
+    const a = parseFloat(els.slHslA.value);
+    const rgb = hslToRgb(h, s, l);
+    state.r = rgb.r; state.g = rgb.g; state.b = rgb.b; state.a = a;
+    render('slhsla');
+  });
+});
+
+// HSBA sliders
+['slHsbH','slHsbS','slHsbB','slHsbA'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    const h = parseInt(els.slHsbH.value);
+    const s = parseInt(els.slHsbS.value);
+    const b = parseInt(els.slHsbB.value);
+    const a = parseFloat(els.slHsbA.value);
+    const rgb = hsbToRgb(h, s, b);
+    state.r = rgb.r; state.g = rgb.g; state.b = rgb.b; state.a = a;
+    render('slhsba');
+  });
+});
+
+// Native picker
+$('nativePicker').addEventListener('input', e => {
+  const v = hexToRgba(e.target.value);
+  if (v) { state = { ...v, a: state.a }; render('hex'); }
+});
+
+// ─── Copy ─────────────────────────────────────────────────────────────────────
+const formatStrings = {
+  hex:  () => rgbaToHex(state.r, state.g, state.b, state.a),
+  rgba: () => `rgba(${state.r}, ${state.g}, ${state.b}, ${state.a})`,
+  hsla: () => { const h = rgbToHsl(state.r, state.g, state.b); return `hsla(${h.h}, ${h.s}%, ${h.l}%, ${state.a})`; },
+  hsba: () => { const h = rgbToHsb(state.r, state.g, state.b); return `hsb(${h.h}, ${h.s}%, ${h.b}%, ${state.a})`; },
+};
+
+function copyFormat(fmt) {
+  navigator.clipboard.writeText(formatStrings[fmt]()).then(() => {
+    const btns = document.querySelectorAll(`.copy-btn`);
+    btns.forEach(b => { if (b.getAttribute('onclick') === `copyFormat('${fmt}')`) {
+      b.textContent = 'Copied'; b.classList.add('copied');
+      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 1500);
+    }});
+  });
+}
+
+// ─── Collapsible sections ─────────────────────────────────────────────────────
+const SECTION_IDS = ['sec-hex', 'sec-hsla', 'sec-hsba', 'sec-rgba'];
+let collapsed = JSON.parse(localStorage.getItem('cf-collapsed') || '{}');
+
+function toggleSection(id) {
+  collapsed[id] = !collapsed[id];
+  localStorage.setItem('cf-collapsed', JSON.stringify(collapsed));
+  applyCollapsed();
+}
+
+function applyCollapsed() {
+  SECTION_IDS.forEach(id => {
+    $(id).classList.toggle('collapsed', !!collapsed[id]);
+  });
+}
+
+applyCollapsed();
+
+// ─── Palette ──────────────────────────────────────────────────────────────────
+const PALETTE_SIZE = 8;
+let palette = JSON.parse(localStorage.getItem('cf-palette') || 'null') || new Array(PALETTE_SIZE).fill(null);
+let ctxTarget = null;
+
+function savePalette() {
+  localStorage.setItem('cf-palette', JSON.stringify(palette));
+}
+
+function renderPalette() {
+  const container = $('paletteSwatches');
+  container.innerHTML = '';
+  palette.forEach((color, i) => {
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch' + (color ? '' : ' empty');
+    swatch.title = color ? color : 'empty';
+
+    const fill = document.createElement('div');
+    fill.className = 'swatch-color';
+    if (color) fill.style.background = color;
+    swatch.appendChild(fill);
+
+    swatch.addEventListener('click', () => {
+      if (!color) return;
+      const v = hexToRgba(color);
+      if (v) { state = v; render(null); }
+    });
+
+    swatch.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      ctxTarget = i;
+      showCtxMenu(e.clientX, e.clientY, color);
+    });
+
+    container.appendChild(swatch);
+  });
+}
+
+function showCtxMenu(x, y, color) {
+  const menu = $('ctxMenu');
+  $('ctxLoad').classList.toggle('disabled', !color);
+  $('ctxDelete').classList.toggle('disabled', !color);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.add('visible');
+
+  // Clamp to viewport
+  const rect = menu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) menu.style.left = (x - rect.width) + 'px';
+  if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+}
+
+function hideCtxMenu() {
+  $('ctxMenu').classList.remove('visible');
+  ctxTarget = null;
+}
+
+$('ctxLoad').addEventListener('click', () => {
+  if (ctxTarget === null || !palette[ctxTarget]) return;
+  const v = hexToRgba(palette[ctxTarget]);
+  if (v) { state = v; render(null); }
+  hideCtxMenu();
+});
+
+$('ctxSave').addEventListener('click', () => {
+  if (ctxTarget === null) return;
+  palette[ctxTarget] = rgbaToHex(state.r, state.g, state.b, state.a);
+  savePalette();
+  renderPalette();
+  hideCtxMenu();
+});
+
+$('ctxDelete').addEventListener('click', () => {
+  if (ctxTarget === null) return;
+  palette[ctxTarget] = null;
+  savePalette();
+  renderPalette();
+  hideCtxMenu();
+});
+
+document.addEventListener('click', e => {
+  if (!$('ctxMenu').contains(e.target)) hideCtxMenu();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') hideCtxMenu();
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+renderPalette();
+render(null);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
