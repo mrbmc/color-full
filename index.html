@@ -11,8 +11,8 @@
 
   :root {
     --bg: #0e0e10;
-    --surface: #18181b;
-    --surface2: #232328;
+    --surface: #18181b80;
+    --surface2: #23232880;
     --border: #2e2e35;
     --text: #e4e4e7;
     --text-dim: #a1a1aa;
@@ -20,7 +20,7 @@
     --accent: #a78bfa;
     --accent-dim: rgba(167, 139, 250, 0.12);
     --chip-size: 160px;
-    --radius: 10px;
+    --radius: 1em;
     --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
@@ -148,10 +148,10 @@
     flex-direction: column;
     justify-content: center;
     gap: 6px;
-    padding: 12px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
+    /*padding: 12px;*/
+    /*background: var(--surface);*/
+    /*border-radius: var(--radius);*/
+    /*border: 1px solid var(--border);*/
   }
 
   .chip-label {
@@ -185,16 +185,12 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 hsla(0,0%,100%,0.13),inset 1px 0px 0 hsla(32,13%,55%,0.08),inset 0 -1px 0 hsla(0,0%,0%,0.21),inset -1px 0px 0 hsla(32,13%,34%,0.08);
+    backdrop-filter: blur(16px);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     transition: border-color 0.15s;
-  }
-
-  .format-section:focus-within {
-    border-color: var(--accent);
-    background: var(--surface);
   }
 
   .format-header {
@@ -206,20 +202,34 @@
   }
 
   .format-toggle {
+    display: inline-block;
     color: var(--text-dimmer);
     font-size: 11px;
     line-height: 1;
     transition: transform 0.2s ease;
-    flex-shrink: 0;
   }
 
   .format-section.collapsed .format-toggle {
     transform: rotate(-90deg);
   }
 
-  .format-section.collapsed .fields,
-  .format-section.collapsed .slider-row {
-    display: none;
+  .section-body {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.25s ease;
+  }
+
+  .section-body > div {
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .format-section.collapsed .section-body {
+    grid-template-rows: 0fr;
   }
 
   .format-label {
@@ -237,8 +247,8 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-dimmer);
-    background: none;
-    border: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
     cursor: pointer;
     padding: 2px 6px;
     border-radius: 4px;
@@ -246,8 +256,33 @@
   }
 
   .copy-btn:hover { color: var(--accent); background: var(--accent-dim); }
-  .copy-btn.copied { color: #4ade80; }
 
+  .copy-bubble {
+    position: fixed;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: bubble-rise 1.1s ease-out forwards;
+  }
+
+  @keyframes bubble-rise {
+    0%   { opacity: 1;   transform: translateY(0)     scale(1); }
+    15%  { opacity: 1;   transform: translateY(-6px)  scale(1.08); }
+    100% { opacity: 0;   transform: translateY(-32px) scale(0.9); }
+  }
+
+/*  .copy-btn:focus-within {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+*/
   .fields {
     display: flex;
     gap: 8px;
@@ -274,7 +309,7 @@
   .field input[type="text"],
   .field input[type="number"] {
     width: 100%;
-    background: var(--surface2);
+    background: #000;
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 7px 9px;
@@ -442,6 +477,7 @@
     z-index: 1000;
     background: var(--surface2);
     border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
     border-radius: 8px;
     padding: 4px;
     min-width: 110px;
@@ -500,79 +536,95 @@
   <!-- HEX -->
   <div class="format-section" id="sec-hex">
     <div class="format-header" onclick="toggleSection('sec-hex')">
-      <span class="format-label">HEX</span>
+      <span>
+        <span class="format-toggle">&#9660;</span>
+        <span class="format-label" onclick="event.stopPropagation(); copyFormat('hex')">HEX</span>
+      </span>
       <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hex')">Copy</button>
-      <span class="format-toggle">&#9660;</span>
     </div>
-    <div class="fields">
-      <div class="field wide">
-        <label>Hex</label>
-        <input type="text" id="hexInput" maxlength="9" spellcheck="false" placeholder="#rrggbb">
+    <div class="section-body"><div>
+      <div class="fields">
+        <div class="field wide">
+          <label>Hex</label>
+          <input type="text" id="hexInput" maxlength="9" spellcheck="false" placeholder="#rrggbb">
+        </div>
       </div>
-    </div>
+    </div></div>
   </div>
 
   <!-- HSLA -->
   <div class="format-section" id="sec-hsla">
     <div class="format-header" onclick="toggleSection('sec-hsla')">
-      <span class="format-label">HSLA</span>
+      <span>
+        <span class="format-toggle">&#9660;</span>
+        <span class="format-label">HSLA</span>
+      </span>
       <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsla')">Copy</button>
-      <span class="format-toggle">&#9660;</span>
     </div>
-    <div class="fields">
-      <div class="field"><label>H°</label><input type="number" id="hslaH" min="0" max="360"></div>
-      <div class="field"><label>S%</label><input type="number" id="hslaS" min="0" max="100"></div>
-      <div class="field"><label>L%</label><input type="number" id="hslaL" min="0" max="100"></div>
-      <div class="field"><label>A</label><input type="number" id="hslaA" min="0" max="1" step="0.01"></div>
-    </div>
-    <div class="slider-row">
-      <div class="slider-track"><label>H</label><input type="range" id="slHslaH" min="0" max="360"><span class="slider-val" id="slHslaHVal">239</span></div>
-      <div class="slider-track"><label>S</label><input type="range" id="slHslaS" min="0" max="100"><span class="slider-val" id="slHslaSVal">84</span></div>
-      <div class="slider-track"><label>L</label><input type="range" id="slHslaL" min="0" max="100"><span class="slider-val" id="slHslaLVal">67</span></div>
-      <div class="slider-track"><label>A</label><input type="range" id="slHslaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHslaAVal">1</span></div>
-    </div>
+    <div class="section-body"><div>
+      <div class="fields">
+        <div class="field"><label>H°</label><input type="number" id="hslaH" min="0" max="360"></div>
+        <div class="field"><label>S%</label><input type="number" id="hslaS" min="0" max="100"></div>
+        <div class="field"><label>L%</label><input type="number" id="hslaL" min="0" max="100"></div>
+        <div class="field"><label>A</label><input type="number" id="hslaA" min="0" max="1" step="0.01"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-track"><label>H</label><input type="range" id="slHslaH" min="0" max="360"><span class="slider-val" id="slHslaHVal">239</span></div>
+        <div class="slider-track"><label>S</label><input type="range" id="slHslaS" min="0" max="100"><span class="slider-val" id="slHslaSVal">84</span></div>
+        <div class="slider-track"><label>L</label><input type="range" id="slHslaL" min="0" max="100"><span class="slider-val" id="slHslaLVal">67</span></div>
+        <div class="slider-track"><label>A</label><input type="range" id="slHslaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHslaAVal">1</span></div>
+      </div>
+    </div></div>
   </div>
 
   <!-- HSBA -->
   <div class="format-section" id="sec-hsba">
     <div class="format-header" onclick="toggleSection('sec-hsba')">
-      <span class="format-label">HSBA / HSV</span>
+      <span>
+        <span class="format-toggle">&#9660;</span>
+        <span class="format-label">HSBA / HSV</span>
+      </span>
       <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsba')">Copy</button>
-      <span class="format-toggle">&#9660;</span>
     </div>
-    <div class="fields">
-      <div class="field"><label>H°</label><input type="number" id="hsbaH" min="0" max="360"></div>
-      <div class="field"><label>S%</label><input type="number" id="hsbaS" min="0" max="100"></div>
-      <div class="field"><label>B%</label><input type="number" id="hsbaB" min="0" max="100"></div>
-      <div class="field"><label>A</label><input type="number" id="hsbaA" min="0" max="1" step="0.01"></div>
-    </div>
-    <div class="slider-row">
-      <div class="slider-track"><label>H</label><input type="range" id="slHsbaH" min="0" max="360"><span class="slider-val" id="slHsbaHVal">239</span></div>
-      <div class="slider-track"><label>S</label><input type="range" id="slHsbaS" min="0" max="100"><span class="slider-val" id="slHsbaSVal">59</span></div>
-      <div class="slider-track"><label>B</label><input type="range" id="slHsbaB" min="0" max="100"><span class="slider-val" id="slHsbaBVal">95</span></div>
-      <div class="slider-track"><label>A</label><input type="range" id="slHsbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHsbaAVal">1</span></div>
-    </div>
+    <div class="section-body"><div>
+      <div class="fields">
+        <div class="field"><label>H°</label><input type="number" id="hsbaH" min="0" max="360"></div>
+        <div class="field"><label>S%</label><input type="number" id="hsbaS" min="0" max="100"></div>
+        <div class="field"><label>B%</label><input type="number" id="hsbaB" min="0" max="100"></div>
+        <div class="field"><label>A</label><input type="number" id="hsbaA" min="0" max="1" step="0.01"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-track"><label>H</label><input type="range" id="slHsbaH" min="0" max="360"><span class="slider-val" id="slHsbaHVal">239</span></div>
+        <div class="slider-track"><label>S</label><input type="range" id="slHsbaS" min="0" max="100"><span class="slider-val" id="slHsbaSVal">59</span></div>
+        <div class="slider-track"><label>B</label><input type="range" id="slHsbaB" min="0" max="100"><span class="slider-val" id="slHsbaBVal">95</span></div>
+        <div class="slider-track"><label>A</label><input type="range" id="slHsbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slHsbaAVal">1</span></div>
+      </div>
+    </div></div>
   </div>
 
   <!-- RGBA -->
   <div class="format-section" id="sec-rgba">
     <div class="format-header" onclick="toggleSection('sec-rgba')">
-      <span class="format-label">RGBA</span>
+      <span>
+        <span class="format-toggle">&#9660;</span>
+        <span class="format-label">RGBA</span>
+      </span>
       <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('rgba')">Copy</button>
-      <span class="format-toggle">&#9660;</span>
     </div>
-    <div class="fields">
-      <div class="field"><label>R</label><input type="number" id="rgbaR" min="0" max="255"></div>
-      <div class="field"><label>G</label><input type="number" id="rgbaG" min="0" max="255"></div>
-      <div class="field"><label>B</label><input type="number" id="rgbaB" min="0" max="255"></div>
-      <div class="field"><label>A</label><input type="number" id="rgbaA" min="0" max="1" step="0.01"></div>
-    </div>
-    <div class="slider-row">
-      <div class="slider-track"><label>R</label><input type="range" id="slRgbaR" min="0" max="255"><span class="slider-val" id="slRgbaRVal">99</span></div>
-      <div class="slider-track"><label>G</label><input type="range" id="slRgbaG" min="0" max="255"><span class="slider-val" id="slRgbaGVal">102</span></div>
-      <div class="slider-track"><label>B</label><input type="range" id="slRgbaB" min="0" max="255"><span class="slider-val" id="slRgbaBVal">241</span></div>
-      <div class="slider-track"><label>A</label><input type="range" id="slRgbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slRgbaAVal">1</span></div>
-    </div>
+    <div class="section-body"><div>
+      <div class="fields">
+        <div class="field"><label>R</label><input type="number" id="rgbaR" min="0" max="255"></div>
+        <div class="field"><label>G</label><input type="number" id="rgbaG" min="0" max="255"></div>
+        <div class="field"><label>B</label><input type="number" id="rgbaB" min="0" max="255"></div>
+        <div class="field"><label>A</label><input type="number" id="rgbaA" min="0" max="1" step="0.01"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-track"><label>R</label><input type="range" id="slRgbaR" min="0" max="255"><span class="slider-val" id="slRgbaRVal">99</span></div>
+        <div class="slider-track"><label>G</label><input type="range" id="slRgbaG" min="0" max="255"><span class="slider-val" id="slRgbaGVal">102</span></div>
+        <div class="slider-track"><label>B</label><input type="range" id="slRgbaB" min="0" max="255"><span class="slider-val" id="slRgbaBVal">241</span></div>
+        <div class="slider-track"><label>A</label><input type="range" id="slRgbaA" min="0" max="1" step="0.01"><span class="slider-val" id="slRgbaAVal">1</span></div>
+      </div>
+    </div></div>
   </div>
 
   <!-- Palette -->
@@ -848,11 +900,18 @@ const formatStrings = {
 
 function copyFormat(fmt) {
   navigator.clipboard.writeText(formatStrings[fmt]()).then(() => {
-    const btns = document.querySelectorAll(`.copy-btn`);
-    btns.forEach(b => { if (b.getAttribute('onclick') === `copyFormat('${fmt}')`) {
-      b.textContent = 'Copied'; b.classList.add('copied');
-      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 1500);
-    }});
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => {
+      if (!(b.getAttribute('onclick') || '').includes(`copyFormat('${fmt}')`)) return;
+      const rect = b.getBoundingClientRect();
+      const bubble = document.createElement('div');
+      bubble.className = 'copy-bubble';
+      bubble.textContent = 'Copied!';
+      document.body.appendChild(bubble);
+      bubble.style.left = (rect.left + (rect.width  - bubble.offsetWidth)  / 2) + 'px';
+      bubble.style.top  = (rect.top  - bubble.offsetHeight - 6) + 'px';
+      bubble.addEventListener('animationend', () => bubble.remove());
+    });
   });
 }
 
