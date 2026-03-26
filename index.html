@@ -171,6 +171,39 @@
     letter-spacing: 0.03em;
   }
 
+  .eyedropper-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    align-self: flex-start;
+  }
+
+  .eyedropper-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .eyedropper-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    fill: currentColor;
+  }
+
+  .eyedropper-supported .eyedropper-btn { display: flex; }
+
   .chip-meta {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -530,6 +563,9 @@
       <span class="chip-label">Active color</span>
       <span class="chip-hex-display" id="chipHexDisplay">#6366f1</span>
       <span class="chip-meta" id="chipMeta"></span>
+      <button class="eyedropper-btn" id="eyedropperBtn" title="Pick color from screen">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M13.89 1.34a2.4 2.4 0 0 0-3.39 0L9.06 2.78l-.7-.7a1 1 0 0 0-1.41 1.41l.35.36-5.2 5.2A2 2 0 0 0 1.5 10.5v1A1.5 1.5 0 0 0 0 13v1.5a1 1 0 0 0 1 1H2.5A1.5 1.5 0 0 0 4 14v-.09a2 2 0 0 0 1.28-.5l5.2-5.2.36.35a1 1 0 0 0 1.41-1.41l-.7-.7 1.44-1.44a2.4 2.4 0 0 0 0-3.39zM2.5 14H1v-1a.5.5 0 0 1 .5-.5H2.5v1.5zm1-1.5H3v-1h.09A1 1 0 0 1 3.5 12v.5zm.67-.95A2 2 0 0 0 3.5 11v-.5a.5.5 0 0 0-.5-.5H2.5A1 1 0 0 0 2 10.5v-.08L7.06 5.4l3.54 3.54z"/></svg>
+      </button>
     </div>
   </div>
 
@@ -889,6 +925,17 @@ $('nativePicker').addEventListener('input', e => {
   const v = hexToRgba(e.target.value);
   if (v) { state = { ...v, a: state.a }; render('hex'); }
 });
+
+// Eyedropper
+if ('EyeDropper' in window) {
+  document.querySelector('.chip-row').classList.add('eyedropper-supported');
+  $('eyedropperBtn').addEventListener('click', () => {
+    new EyeDropper().open().then(result => {
+      const v = hexToRgba(result.sRGBHex);
+      if (v) { state = { ...v, a: state.a }; render('hex'); }
+    }).catch(() => {});
+  });
+}
 
 // ─── Copy ─────────────────────────────────────────────────────────────────────
 const formatStrings = {
