@@ -66,14 +66,15 @@
     color: var(--text-dim);
   }
 
-  header .dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
+  header img#icon-swatches {
+    height: 1.5em;
     margin-left: auto;
-    box-shadow: 0 0 8px var(--accent);
-    animation: pulse 2.5s ease-in-out infinite;
+    animation: hue-cycle 24s linear infinite;
+  }
+
+  @keyframes hue-cycle {
+    from { filter: sepia(1) saturate(4) brightness(0.85) hue-rotate(0deg); }
+    to   { filter: sepia(1) saturate(4) brightness(0.85) hue-rotate(360deg); }
   }
 
   a {
@@ -82,7 +83,7 @@
 
   @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
+    50% { opacity: 0.65; }
   }
 
   /* Color chip */
@@ -550,7 +551,7 @@
 
   <header>
     <h1>Color Full</h1>
-    <div class="dot"></div>
+    <img src="swatches.svg" id="icon-swatches">
   </header>
 
   <!-- Chip + summary -->
