@@ -276,20 +276,115 @@
   }
 
   .copy-btn {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
     color: var(--text-dimmer);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    padding: 2px 6px;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
   }
 
-  .copy-btn:hover { color: var(--accent); background: var(--accent-dim); }
+  .copy-btn svg {
+    width: 13px;
+    height: 13px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .copy-btn:hover { color: var(--accent); background: var(--accent-dim); border-color: var(--accent); }
+
+  .settings-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-dimmer);
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .settings-btn:hover, .settings-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .settings-btn svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+    fill: currentColor;
+  }
+
+  .format-header-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+
+  /* Mode flyout */
+  .mode-flyout {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 200;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 130px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: none;
+  }
+
+  .mode-flyout.visible { display: block; }
+
+  .mode-flyout-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+    white-space: nowrap;
+  }
+
+  .mode-flyout-item:hover { background: var(--accent-dim); color: var(--accent); }
+
+  .mode-flyout-item.current { color: var(--accent); }
+
+  .mode-flyout-item .check {
+    width: 10px;
+    flex-shrink: 0;
+    font-size: 10px;
+    opacity: 0;
+  }
+
+  .mode-flyout-item.current .check { opacity: 1; }
 
   .copy-bubble {
     position: fixed;
@@ -547,6 +642,13 @@
 </style>
 </head>
 <body>
+<svg hidden style="display:none">
+  <defs>
+    <symbol id="icon-gear" viewBox="0 0 16 16"><path fill="currentColor" d="M8 10.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm5.94-1.47-.9-.52a5.1 5.1 0 0 0 0-1.02l.9-.52a1 1 0 0 0 .37-1.37l-1-1.73a1 1 0 0 0-1.37-.37l-.9.52a5.16 5.16 0 0 0-.88-.51V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1.01a5.16 5.16 0 0 0-.88.51l-.9-.52a1 1 0 0 0-1.37.37l-1 1.73a1 1 0 0 0 .37 1.37l.9.52a5.1 5.1 0 0 0 0 1.02l-.9.52a1 1 0 0 0-.37 1.37l1 1.73a1 1 0 0 0 1.37.37l.9-.52c.28.19.57.36.88.51V13a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-1.01a5.16 5.16 0 0 0 .88-.51l.9.52a1 1 0 0 0 1.37-.37l1-1.73a1 1 0 0 0-.37-1.37z"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 16 16"><rect fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" x="5" y="4" width="8" height="10" rx="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M11 4V3a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v8a1 1 0 0 0 1 1h2"/></symbol>
+    <symbol id="icon-eyedropper" viewBox="0 0 16 16"><path fill="currentColor" d="M13.89 1.34a2.4 2.4 0 0 0-3.39 0L9.06 2.78l-.7-.7a1 1 0 0 0-1.41 1.41l.35.36-5.2 5.2A2 2 0 0 0 1.5 10.5v1A1.5 1.5 0 0 0 0 13v1.5a1 1 0 0 0 1 1H2.5A1.5 1.5 0 0 0 4 14v-.09a2 2 0 0 0 1.28-.5l5.2-5.2.36.35a1 1 0 0 0 1.41-1.41l-.7-.7 1.44-1.44a2.4 2.4 0 0 0 0-3.39zM2.5 14H1v-1a.5.5 0 0 1 .5-.5H2.5v1.5zm1-1.5H3v-1h.09A1 1 0 0 1 3.5 12v.5zm.67-.95A2 2 0 0 0 3.5 11v-.5a.5.5 0 0 0-.5-.5H2.5A1 1 0 0 0 2 10.5v-.08L7.06 5.4l3.54 3.54z"/></symbol>
+  </defs>
+</svg>
 <div class="app">
 
   <header>
@@ -565,7 +667,7 @@
       <span class="chip-hex-display" id="chipHexDisplay">#6366f1</span>
       <span class="chip-meta" id="chipMeta"></span>
       <button class="eyedropper-btn" id="eyedropperBtn" title="Pick color from screen">
-        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M13.89 1.34a2.4 2.4 0 0 0-3.39 0L9.06 2.78l-.7-.7a1 1 0 0 0-1.41 1.41l.35.36-5.2 5.2A2 2 0 0 0 1.5 10.5v1A1.5 1.5 0 0 0 0 13v1.5a1 1 0 0 0 1 1H2.5A1.5 1.5 0 0 0 4 14v-.09a2 2 0 0 0 1.28-.5l5.2-5.2.36.35a1 1 0 0 0 1.41-1.41l-.7-.7 1.44-1.44a2.4 2.4 0 0 0 0-3.39zM2.5 14H1v-1a.5.5 0 0 1 .5-.5H2.5v1.5zm1-1.5H3v-1h.09A1 1 0 0 1 3.5 12v.5zm.67-.95A2 2 0 0 0 3.5 11v-.5a.5.5 0 0 0-.5-.5H2.5A1 1 0 0 0 2 10.5v-.08L7.06 5.4l3.54 3.54z"/></svg>
+        <svg viewBox="0 0 16 16"><use href="#icon-eyedropper"/></svg>
       </button>
     </div>
   </div>
@@ -577,7 +679,15 @@
         <span class="format-toggle">&#9660;</span>
         <span class="format-label" onclick="event.stopPropagation(); copyFormat('hex')">HEX</span>
       </span>
-      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hex')">Copy</button>
+      <span class="format-header-right">
+        <button class="settings-btn" id="gear-hex" onclick="event.stopPropagation(); toggleFlyout('hex', this)" title="Change color mode">
+          <svg viewBox="0 0 16 16"><use href="#icon-gear"/></svg>
+        </button>
+        <div class="mode-flyout" id="flyout-hex"></div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hex')" title="Copy">
+          <svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg>
+        </button>
+      </span>
     </div>
     <div class="section-body"><div>
       <div class="fields">
@@ -596,7 +706,15 @@
         <span class="format-toggle">&#9660;</span>
         <span class="format-label">HSLA</span>
       </span>
-      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsla')">Copy</button>
+      <span class="format-header-right">
+        <button class="settings-btn" id="gear-hsla" onclick="event.stopPropagation(); toggleFlyout('hsla', this)" title="Change color mode">
+          <svg viewBox="0 0 16 16"><use href="#icon-gear"/></svg>
+        </button>
+        <div class="mode-flyout" id="flyout-hsla"></div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsla')" title="Copy">
+          <svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg>
+        </button>
+      </span>
     </div>
     <div class="section-body"><div>
       <div class="fields">
@@ -621,7 +739,15 @@
         <span class="format-toggle">&#9660;</span>
         <span class="format-label">HSBA / HSV</span>
       </span>
-      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsba')">Copy</button>
+      <span class="format-header-right">
+        <button class="settings-btn" id="gear-hsba" onclick="event.stopPropagation(); toggleFlyout('hsba', this)" title="Change color mode">
+          <svg viewBox="0 0 16 16"><use href="#icon-gear"/></svg>
+        </button>
+        <div class="mode-flyout" id="flyout-hsba"></div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('hsba')" title="Copy">
+          <svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg>
+        </button>
+      </span>
     </div>
     <div class="section-body"><div>
       <div class="fields">
@@ -646,7 +772,15 @@
         <span class="format-toggle">&#9660;</span>
         <span class="format-label">RGBA</span>
       </span>
-      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('rgba')">Copy</button>
+      <span class="format-header-right">
+        <button class="settings-btn" id="gear-rgba" onclick="event.stopPropagation(); toggleFlyout('rgba', this)" title="Change color mode">
+          <svg viewBox="0 0 16 16"><use href="#icon-gear"/></svg>
+        </button>
+        <div class="mode-flyout" id="flyout-rgba"></div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('rgba')" title="Copy">
+          <svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg>
+        </button>
+      </span>
     </div>
     <div class="section-body"><div>
       <div class="fields">
@@ -671,7 +805,15 @@
         <span class="format-toggle">&#9660;</span>
         <span class="format-label" onclick="event.stopPropagation(); copyFormat('srgb')">sRGB</span>
       </span>
-      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('srgb')">Copy</button>
+      <span class="format-header-right">
+        <button class="settings-btn" id="gear-srgb" onclick="event.stopPropagation(); toggleFlyout('srgb', this)" title="Change color mode">
+          <svg viewBox="0 0 16 16"><use href="#icon-gear"/></svg>
+        </button>
+        <div class="mode-flyout" id="flyout-srgb"></div>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('srgb')" title="Copy">
+          <svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg>
+        </button>
+      </span>
     </div>
     <div class="section-body"><div>
       <div class="fields">
@@ -693,7 +835,7 @@
   <div class="palette">
     <div class="palette-header">
       <span class="format-label">Palette</span>
-      <button class="copy-btn" onclick="exportPaletteCSS()">Export CSS</button>
+      <button class="copy-btn" onclick="exportPaletteCSS()" title="Export CSS"><svg viewBox="0 0 16 16"><use href="#icon-copy"/></svg></button>
     </div>
     <div class="palette-swatches" id="paletteSwatches"></div>
   </div>
@@ -1026,8 +1168,50 @@ function copyFormat(fmt) {
   });
 }
 
+// ─── Slot system (which 3 modes are shown) ────────────────────────────────────
+const ALL_MODES = [
+  { id: 'hex',  label: 'HEX' },
+  { id: 'hsla', label: 'HSLA' },
+  { id: 'hsba', label: 'HSBA / HSV' },
+  { id: 'rgba', label: 'RGBA' },
+  { id: 'srgb', label: 'sRGB' },
+];
+const DEFAULT_SLOTS = ['hex', 'hsla', 'rgba'];
+
+let slots = (() => {
+  try {
+    const s = JSON.parse(localStorage.getItem('cf-slots') || 'null');
+    if (Array.isArray(s) && s.length === 3 && s.every(m => ALL_MODES.some(x => x.id === m))) return s;
+  } catch (_) {}
+  return [...DEFAULT_SLOTS];
+})();
+
+function saveSlots() {
+  localStorage.setItem('cf-slots', JSON.stringify(slots));
+}
+
+function applySlots() {
+  ALL_MODES.forEach(({ id }) => {
+    const el = $('sec-' + id);
+    el.style.display = slots.includes(id) ? '' : 'none';
+  });
+}
+
+function setSlot(slotMode, newMode) {
+  if (slotMode === newMode) return;
+  // If newMode is already in another slot, swap
+  const existingIdx = slots.indexOf(newMode);
+  const currentIdx = slots.indexOf(slotMode);
+  if (existingIdx !== -1) {
+    slots[existingIdx] = slotMode;
+  }
+  slots[currentIdx] = newMode;
+  saveSlots();
+  applySlots();
+  renderFlyouts();
+}
+
 // ─── Collapsible sections ─────────────────────────────────────────────────────
-const SECTION_IDS = ['sec-hex', 'sec-hsla', 'sec-hsba', 'sec-rgba', 'sec-srgb'];
 let collapsed = JSON.parse(localStorage.getItem('cf-collapsed') || '{}');
 
 function toggleSection(id) {
@@ -1037,12 +1221,57 @@ function toggleSection(id) {
 }
 
 function applyCollapsed() {
-  SECTION_IDS.forEach(id => {
-    $(id).classList.toggle('collapsed', !!collapsed[id]);
+  ALL_MODES.forEach(({ id }) => {
+    $('sec-' + id).classList.toggle('collapsed', !!collapsed['sec-' + id]);
   });
 }
 
+// ─── Flyout menu ──────────────────────────────────────────────────────────────
+let activeFlyout = null; // current slot mode whose flyout is open
+
+function renderFlyouts() {
+  slots.forEach(slotMode => {
+    const flyout = $('flyout-' + slotMode);
+    if (!flyout) return;
+    flyout.innerHTML = '';
+    ALL_MODES.forEach(({ id, label }) => {
+      const item = document.createElement('div');
+      item.className = 'mode-flyout-item' + (id === slotMode ? ' current' : '');
+      item.innerHTML = `<span class="check">✓</span>${label}`;
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        setSlot(slotMode, id);
+        hideFlyout();
+      });
+      flyout.appendChild(item);
+    });
+  });
+}
+
+function toggleFlyout(slotMode, btn) {
+  if (activeFlyout === slotMode) { hideFlyout(); return; }
+  hideFlyout();
+  activeFlyout = slotMode;
+  $('flyout-' + slotMode).classList.add('visible');
+  btn.classList.add('active');
+}
+
+function hideFlyout() {
+  if (!activeFlyout) return;
+  $('flyout-' + activeFlyout).classList.remove('visible');
+  const gearBtn = $('gear-' + activeFlyout);
+  if (gearBtn) gearBtn.classList.remove('active');
+  activeFlyout = null;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.format-header-right')) hideFlyout();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideFlyout(); });
+
+applySlots();
 applyCollapsed();
+renderFlyouts();
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const PALETTE_SIZE = 8;
