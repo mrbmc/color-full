@@ -664,10 +664,36 @@
     </div></div>
   </div>
 
+  <!-- sRGB (WebGL floats) -->
+  <div class="format-section" id="sec-srgb">
+    <div class="format-header" onclick="toggleSection('sec-srgb')">
+      <span>
+        <span class="format-toggle">&#9660;</span>
+        <span class="format-label" onclick="event.stopPropagation(); copyFormat('srgb')">sRGB</span>
+      </span>
+      <button class="copy-btn" onclick="event.stopPropagation(); copyFormat('srgb')">Copy</button>
+    </div>
+    <div class="section-body"><div>
+      <div class="fields">
+        <div class="field"><label>R</label><input type="number" id="srgbR" min="0" max="1" step="0.001"></div>
+        <div class="field"><label>G</label><input type="number" id="srgbG" min="0" max="1" step="0.001"></div>
+        <div class="field"><label>B</label><input type="number" id="srgbB" min="0" max="1" step="0.001"></div>
+        <div class="field"><label>A</label><input type="number" id="srgbA" min="0" max="1" step="0.001"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-track"><label>R</label><input type="range" id="slSrgbR" min="0" max="1" step="0.001"><span class="slider-val" id="slSrgbRVal">0.39</span></div>
+        <div class="slider-track"><label>G</label><input type="range" id="slSrgbG" min="0" max="1" step="0.001"><span class="slider-val" id="slSrgbGVal">0.40</span></div>
+        <div class="slider-track"><label>B</label><input type="range" id="slSrgbB" min="0" max="1" step="0.001"><span class="slider-val" id="slSrgbBVal">0.95</span></div>
+        <div class="slider-track"><label>A</label><input type="range" id="slSrgbA" min="0" max="1" step="0.001"><span class="slider-val" id="slSrgbAVal">1</span></div>
+      </div>
+    </div></div>
+  </div>
+
   <!-- Palette -->
   <div class="palette">
     <div class="palette-header">
       <span class="format-label">Palette</span>
+      <button class="copy-btn" onclick="exportPaletteCSS()">Export CSS</button>
     </div>
     <div class="palette-swatches" id="paletteSwatches"></div>
   </div>
@@ -769,6 +795,8 @@ const els = {
   slRR: $('slRgbaR'), slRG: $('slRgbaG'), slRB: $('slRgbaB'), slRA: $('slRgbaA'),
   slHslH: $('slHslaH'), slHslS: $('slHslaS'), slHslL: $('slHslaL'), slHslA: $('slHslaA'),
   slHsbH: $('slHsbaH'), slHsbS: $('slHsbaS'), slHsbB: $('slHsbaB'), slHsbA: $('slHsbaA'),
+  sR: $('srgbR'), sG: $('srgbG'), sB: $('srgbB'), sA: $('srgbA'),
+  slSR: $('slSrgbR'), slSG: $('slSrgbG'), slSB: $('slSrgbB'), slSA: $('slSrgbA'),
 };
 
 // Slider gradient backgrounds
@@ -795,6 +823,12 @@ function updateSliderBgs() {
   els.slHsbS.style.background = `linear-gradient(to right, hsl(${hsb.h},0%,${hsb.b/2}%), hsl(${hsb.h},100%,${hsb.b/2}%))`;
   els.slHsbB.style.background = `linear-gradient(to right, #000, hsl(${hsb.h},100%,50%))`;
   els.slHsbA.style.background = `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`;
+
+  // sRGB sliders
+  els.slSR.style.background = `linear-gradient(to right, rgb(0,${g},${b}), rgb(255,${g},${b}))`;
+  els.slSG.style.background = `linear-gradient(to right, rgb(${r},0,${b}), rgb(${r},255,${b}))`;
+  els.slSB.style.background = `linear-gradient(to right, rgb(${r},${g},0), rgb(${r},${g},255))`;
+  els.slSA.style.background = `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`;
 }
 
 // ─── Render all fields from state ─────────────────────────────────────────────
@@ -813,15 +847,19 @@ function render(source) {
   $('chipMeta').textContent = `rgba(${r}, ${g}, ${b}, ${a})\nhsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
   $('nativePicker').value = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 
+  const sr = +(r / 255).toFixed(3), sg = +(g / 255).toFixed(3), sb = +(b / 255).toFixed(3);
+
   if (source !== 'hex')   els.hex.value = hex;
   if (source !== 'rgba') { els.rR.value = r; els.rG.value = g; els.rB.value = b; els.rA.value = a; }
   if (source !== 'hsla') { els.hslH.value = hsl.h; els.hslS.value = hsl.s; els.hslL.value = hsl.l; els.hslA.value = a; }
   if (source !== 'hsba') { els.hsbH.value = hsb.h; els.hsbS.value = hsb.s; els.hsbB.value = hsb.b; els.hsbA.value = a; }
+  if (source !== 'srgb') { els.sR.value = sr; els.sG.value = sg; els.sB.value = sb; els.sA.value = a; }
 
   // Sliders
   if (source !== 'slrgba') { els.slRR.value = r; els.slRG.value = g; els.slRB.value = b; els.slRA.value = a; }
   if (source !== 'slhsla') { els.slHslH.value = hsl.h; els.slHslS.value = hsl.s; els.slHslL.value = hsl.l; els.slHslA.value = a; }
   if (source !== 'slhsba') { els.slHsbH.value = hsb.h; els.slHsbS.value = hsb.s; els.slHsbB.value = hsb.b; els.slHsbA.value = a; }
+  if (source !== 'slsrgb') { els.slSR.value = sr; els.slSG.value = sg; els.slSB.value = sb; els.slSA.value = a; }
 
   // Slider labels
   $('slRgbaRVal').textContent = r;
@@ -836,6 +874,10 @@ function render(source) {
   $('slHsbaSVal').textContent = hsb.s;
   $('slHsbaBVal').textContent = hsb.b;
   $('slHsbaAVal').textContent = a;
+  $('slSrgbRVal').textContent = sr;
+  $('slSrgbGVal').textContent = sg;
+  $('slSrgbBVal').textContent = sb;
+  $('slSrgbAVal').textContent = a;
 
   updateSliderBgs();
   updating = false;
@@ -921,6 +963,23 @@ els.slRA.addEventListener('input', () => { state.a = parseFloat(els.slRA.value);
   });
 });
 
+// sRGB text inputs
+['sR','sG','sB'].forEach(k => {
+  els[k].addEventListener('input', () => {
+    state.r = Math.round(clamp(parseFloat(els.sR.value)||0,0,1)*255);
+    state.g = Math.round(clamp(parseFloat(els.sG.value)||0,0,1)*255);
+    state.b = Math.round(clamp(parseFloat(els.sB.value)||0,0,1)*255);
+    render('srgb');
+  });
+});
+els.sA.addEventListener('input', () => { state.a = clamp(parseFloat(els.sA.value)||0,0,1); render('srgb'); });
+
+// sRGB sliders
+els.slSR.addEventListener('input', () => { state.r = Math.round(parseFloat(els.slSR.value)*255); render('slsrgb'); });
+els.slSG.addEventListener('input', () => { state.g = Math.round(parseFloat(els.slSG.value)*255); render('slsrgb'); });
+els.slSB.addEventListener('input', () => { state.b = Math.round(parseFloat(els.slSB.value)*255); render('slsrgb'); });
+els.slSA.addEventListener('input', () => { state.a = parseFloat(els.slSA.value); render('slsrgb'); });
+
 // Native picker
 $('nativePicker').addEventListener('input', e => {
   const v = hexToRgba(e.target.value);
@@ -944,6 +1003,10 @@ const formatStrings = {
   rgba: () => `rgba(${state.r}, ${state.g}, ${state.b}, ${state.a})`,
   hsla: () => { const h = rgbToHsl(state.r, state.g, state.b); return `hsla(${h.h}, ${h.s}%, ${h.l}%, ${state.a})`; },
   hsba: () => { const h = rgbToHsb(state.r, state.g, state.b); return `hsb(${h.h}, ${h.s}%, ${h.b}%, ${state.a})`; },
+  srgb: () => {
+    const r = +(state.r/255).toFixed(3), g = +(state.g/255).toFixed(3), b = +(state.b/255).toFixed(3);
+    return `vec4(${r}, ${g}, ${b}, ${state.a})`;
+  },
 };
 
 function copyFormat(fmt) {
@@ -964,7 +1027,7 @@ function copyFormat(fmt) {
 }
 
 // ─── Collapsible sections ─────────────────────────────────────────────────────
-const SECTION_IDS = ['sec-hex', 'sec-hsla', 'sec-hsba', 'sec-rgba'];
+const SECTION_IDS = ['sec-hex', 'sec-hsla', 'sec-hsba', 'sec-rgba', 'sec-srgb'];
 let collapsed = JSON.parse(localStorage.getItem('cf-collapsed') || '{}');
 
 function toggleSection(id) {
@@ -988,6 +1051,38 @@ let ctxTarget = null;
 
 function savePalette() {
   localStorage.setItem('cf-palette', JSON.stringify(palette));
+}
+
+function exportPaletteCSS() {
+  const filled = palette.map((hex, i) => ({ hex, i })).filter(({ hex }) => hex);
+  const btn = document.querySelector('.palette-header .copy-btn');
+
+  function showBubble(text) {
+    const rect = btn.getBoundingClientRect();
+    const bubble = document.createElement('div');
+    bubble.className = 'copy-bubble';
+    bubble.textContent = text;
+    document.body.appendChild(bubble);
+    bubble.style.left = (rect.left + (rect.width  - bubble.offsetWidth)  / 2) + 'px';
+    bubble.style.top  = (rect.top  - bubble.offsetHeight - 6) + 'px';
+    bubble.addEventListener('animationend', () => bubble.remove());
+  }
+
+  if (!filled.length) { showBubble('Empty'); return; }
+
+  const vars = filled.map(({ hex, i }) => {
+    const v = hexToRgba(hex);
+    const { h, s, l } = rgbToHsl(v.r, v.g, v.b);
+    const r = v.r, g = v.g, b = v.b;
+    const a = +v.a.toFixed(2);
+    const line = a < 1
+      ? `  --color-${i + 1}: rgba(${r}, ${g}, ${b}, ${a}); /* ${hex} */`
+      : `  --color-${i + 1}: hsl(${h}, ${s}%, ${l}%); /* ${hex} */`;
+    return line;
+  }).join('\n');
+
+  const css = `:root {\n${vars}\n}`;
+  navigator.clipboard.writeText(css).then(() => showBubble('Copied!'));
 }
 
 function renderPalette() {
